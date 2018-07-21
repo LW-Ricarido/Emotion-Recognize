@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as func
+import argparse
 import torchvision
 from torch.autograd import Variable
+from datasets import RAFTrainSet
 from torch.utils.data import DataLoader
 from torch.utils.data import sampler
 import cv2
@@ -15,21 +17,46 @@ class Flatten(nn.Module):
         return input.view(N,-1)
 
 class DLP_Loss(nn.Module):
-    def __init__(self,k=1,lam=0.5,theta=2):
+    def __init__(self,k=1,lam=0.5):
         super(DLP_Loss, self).__init__()
         self.k = k
         self.lam = lam
-        self.theta = theta
 
-    def forward(self,input,target):
+    def forward(self,input,scores,target):
         '''
 
         :param input: tensor shape(N,C)  FC layer scores
         :param target: tensor N
         :return:
         '''
-        loss = nn.functional.cross_entropy(input,target)
+        N = input.shape[0]
+        # softmax loss
+        loss = func.cross_entropy(scores,target)
+
+        # locality preserving loss
+        for i in range(N):
+            nums = self.kNN(i,input,target)
+            for j in range(len(nums)):
+                loss += 0.5 * 1 / self.k * func.mse_loss(input[i],input[nums[j]],size_average=True)
         return loss
+
+    def kNN(self,n,input,target):
+        dict = {}
+        length = len(target)
+        for i in range(length):
+            if n != i and target[n] == target[i]:
+                dist = func.pairwise_distance(input[n],input[i]).sum()
+                dict[i] = dist
+        dict = sorted(dict.items(),key=lambda item:item[1])
+        nums = []
+        for i in range(len(dict)):
+            if i < self.k:
+                nums.append(dict[i][0])
+            else:
+                return nums
+        return nums
+
+
 
 
 
@@ -63,15 +90,25 @@ model = nn.Sequential(
 
 if __name__ == '__main__':
     model = model.type(dtype)
-    loss = DLP_Loss().type(dtype)
-    optimizer = optim.SGD(model.parameters(), lr=1e-2)
-    mytest = Variable(torch.randn(10,3,100,100).type(dtype))
-    myy = Variable(torch.randint(0,7,(10,)).type(dtype).long())
+    loss = DLP_Loss(k=3).type(dtype)
+    optimizer = optim.SGD(model.parameters(), lr=1e-3)
+    parser = argparse.ArgumentParser(description="mytest")
+    parser.add_argument('--data_dir', type=str, default='../DataSet/RAF/basic/Image/aligned/')
+    parser.add_argument('--size', type=int, default=100)
+    parser.add_argument('--train_list', type=str, default='../DataSet/RAF/basic/train_set')
+    args = parser.parse_args()
+    mytest = RAFTrainSet(args)
+    index = torch.randint(0,1000,(10,))
+    images = Variable(torch.randn(10,3,100,100))
+    targets = Variable(torch.randn(10,)).long()
+    for i in range(10):
+        image,target = mytest.__getitem__(int(index[i]))
+        images[i] = image
+        targets[i] = target
     for t in range(10):
-        scores = model(mytest)
-        myloss = loss(scores,myy)
-        print(isinstance(myloss,Variable))
-        print(myloss.data[0])
+        scores = model(images)
+        myloss = loss(images,scores,targets)
+        print(myloss.item()) # for pytorch0.5 change myloss.data[0] to myloss.item()
         optimizer.zero_grad()
         myloss.backward()
         optimizer.step()

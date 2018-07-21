@@ -41,13 +41,11 @@ class RAFTrainSet(data.Dataset):
         ])
 
     def __getitem__(self, index):
-        print(self.images[index])
         image = cv2.imread(self.images[index])
         image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         image = cv2.resize(image,(self.args.size,self.args.size))
         image = self.transform(image)
-
-        return image,self.targets
+        return image,self.targets[index]
 
 
     def __len__(self):
@@ -61,6 +59,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_list',type=str,default='DataSet/RAF/basic/train_set')
     args = parser.parse_args()
     mytest = RAFTrainSet(args)
+    print(mytest.__len__())
     image,target = mytest.__getitem__(2)
+    print(image.shape)
     image = transforms.ToPILImage()(image).convert('RGB')
+
     image.show()
