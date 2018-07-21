@@ -16,10 +16,10 @@ class Flatten(nn.Module):
 
 class DLP_Loss(nn.Module):
     def __init__(self,k=1,lam=0.5,theta=2):
+        super(DLP_Loss, self).__init__()
         self.k = k
         self.lam = lam
         self.theta = theta
-        return
 
     def forward(self,input,target):
         '''
@@ -28,11 +28,7 @@ class DLP_Loss(nn.Module):
         :param target: tensor N
         :return:
         '''
-        N = input.shape[0]
-        tmp = torch.Tensor.sum(torch.Tensor.exp(input),dim=1)
-        loss = torch.Tensor.sum(torch.Tensor.log(tmp))
-        loss -= torch.Tensor.sum(input[range(0,N),target])
-        loss /= N
+        loss = nn.functional.cross_entropy(input,target)
         return loss
 
 
@@ -53,13 +49,13 @@ model = nn.Sequential(
     nn.ReLU(inplace=True),
     nn.Conv2d(128,128,kernel_size=3,padding=1), # 128 x 25 x 25
     nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2,stride=2), # 128 x 11 x 11
-    nn.Conv2d(128,256,kernel_size=3,padding=1), # 256 x 11 x 11
+    nn.MaxPool2d(kernel_size=2,stride=2), # 128 x 12 x 12  ?
+    nn.Conv2d(128,256,kernel_size=3,padding=1), # 256 x 12 x 12
     nn.ReLU(inplace=True),
-    nn.Conv2d(256,256,kernel_size=3,padding=1), # 256 x 11 x 11
+    nn.Conv2d(256,256,kernel_size=3,padding=1), # 256 x 12 x 12
     nn.ReLU(inplace=True),
     Flatten(),
-    nn.Linear(30976,2000),
+    nn.Linear(36864,2000),
     nn.ReLU(inplace=True),
     nn.Linear(2000,7)
 )
@@ -68,13 +64,14 @@ model = nn.Sequential(
 if __name__ == '__main__':
     model = model.type(dtype)
     loss = DLP_Loss().type(dtype)
-    optimizer = optim.SGD(model.parameters(), lr=1e-3)
-    mytest = torch.randn(10,3,100,100)
-    myy = torch.randn(10)
+    optimizer = optim.SGD(model.parameters(), lr=1e-2)
+    mytest = Variable(torch.randn(10,3,100,100).type(dtype))
+    myy = Variable(torch.randint(0,7,(10,)).type(dtype).long())
     for t in range(10):
         scores = model(mytest)
         myloss = loss(scores,myy)
-        print(loss)
+        print(isinstance(myloss,Variable))
+        print(myloss.data[0])
         optimizer.zero_grad()
-        loss.backword()
+        myloss.backward()
         optimizer.step()

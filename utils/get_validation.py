@@ -11,14 +11,14 @@ args = parser.parse_args()
 if __name__ == '__main__':
     lines = open(args.txt_source).readlines()
 
-    train_set = open(os.path.join(args.dst_location,'train.test'),'w')
+    train_set = open(os.path.join(args.dst_location,'train_set'),'w')
     validation_set = open(os.path.join(args.dst_location,'validation_set'),'w')
     test_set = open(os.path.join(args.dst_location,'test_set'),'w')
 
     for i in range(0,12271):
         if random.random() <= args.train_ratio:
-            train_set.write(lines[i])
+            train_set.write(lines[i].replace('.','_aligned.'))
         else:
-            validation_set.write(lines[i])
+            validation_set.write(lines[i].replace('.','_aligned.'))
     for i in range(12271,15339):
-        test_set.write(lines[i])
+        test_set.write(lines[i].replace('.','_aligned.'))
