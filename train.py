@@ -2,6 +2,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
+from utils.mixup import shuffle_minibatch
 
 class Trainer:
     def __init__(self,args,model,criterion,logger):
@@ -33,4 +34,79 @@ class Trainer:
 
         for i ,(input_tensor, target) in enumerate(train_loader):
             if self.args.mixup:
-                input_tensor, target = shuff
+                input_tensor, target = shuffle_minibatch(input_tensor,target,self.args,mixup=True)
+
+            if self.nGPU > 0 :
+                input_tensor = input_tensor.cuda()
+                target = target.cuda(async=True)
+
+            batch_size = target.size(0)
+            input_var = Variable(input_tensor)
+            target_var = Variable(target)
+
+            output = model(input_var)
+
+            if self.args.mixup:
+                m = nn.LogSoftmax(dim=1)
+                loss = -m(output) * target
+                loss = torch.sum(loss) / 128
+                _, target = torch.max(target.item(),1)
+            else:
+                loss = self.criterion(output,target_var)
+
+            acc = self.accuary(output.item(),target)
+            acc_avg += acc * batch_size
+
+            loss_avg += loss.item() * batch_size
+            total += batch_size
+
+            print("| Epoch[%d] [%d/%d]  Loss %1.4f  Acc %6.3f   LR %1.8f" % (
+                epoch,
+                i + 1,
+                n_batches,
+                loss.item(),
+                acc,
+                self.decay * self.learn_rate))
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer().step()
+
+        loss_avg /= total
+        acc_avg /= total
+        print("\n=> Epoch[%d]  Loss: %1.4f  Acc %6.3f  \n" % (
+            epoch,
+            loss_avg,
+            acc_avg))
+        torch.cuda.empty_cache()
+        summary = dict()
+
+        summary['acc'] = acc_avg
+        summary['loss'] = loss_avg
+
+        return summary
+
+
+    def accuary(self,output,target,topk=(1,)):
+        maxk = max(topk)
+        batch_size = target.size(0)
+
+        _,pred = output.topk(maxk,1,True,True)
+        pred = pred.t()
+        correcct = pred.eq(target.view(1,-1).expand_as(pred))
+
+        res = []
+
+        for k in topk:
+            correcct_k = correcct[:k].view(-1).float().sum(0,keepdim=True)
+
+            res.append(correcct_k.mul_(100.0 / batch_size)[0])
+        return res
+
+    def learing_rate(self,epoch):
+        self.decay = 0.1 **((epoch - 1) // self.args.decay)
+        learn_rate = self.learning_rate * self.decay
+        if learn_rate < 1e-7:
+            learn_rate = 1e-7
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = learn_rate
