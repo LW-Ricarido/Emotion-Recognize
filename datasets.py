@@ -9,12 +9,23 @@ from torchvision import datasets, transforms
 import torch.utils.data as data
 import argparse
 
-def getTrainLoader(args):
+def get_train_loader(args):
     dataset = RAFTrainSet(args)
 
     return DataLoader(
         dataset,
         batch_size=args.batch_size,
+        shuffle=args.shuffle,
+        num_workers=args.workers,
+        pin_memory=True
+    )
+
+def get_test_loader(args):
+    dataset = RAFTestSet(args)
+
+    return DataLoader(
+        dataset,
+        batch_size=1,
         shuffle=args.shuffle,
         num_workers=args.workers,
         pin_memory=True
@@ -45,8 +56,39 @@ class RAFTrainSet(data.Dataset):
         image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         image = cv2.resize(image,(self.args.size,self.args.size))
         image = self.transform(image)
-        return image,self.targets[index]
+        target = self.targets[index]
+        return image,target
 
+
+    def __len__(self):
+        return len(self.targets)
+
+class RAFTestSet(data.Dataset):
+    def __init__(self,args):
+        self.images = list()
+        self.targets = list()
+        self.args = args
+
+        #
+        #
+        #
+        lines = open(args.train_list).readlines()
+        for line in lines:
+            path, label = line.strip().split(' ')
+            self.images.append(os.path.join(args.data_dir, path))
+            self.targets.append(int(label) - 1)
+
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+        ])
+
+    def __getitem__(self, index):
+        image = cv2.imread(self.images[index])
+        image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image,(self.args.size,self.args.size))
+        image = self.transform(image)
+        target = self.targets[index]
+        return image,target,self.images[index]
 
     def __len__(self):
         return len(self.targets)

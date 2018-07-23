@@ -2,24 +2,27 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 
 from opts import args
-from models.resnet import resnet101, resnet18, resnet50
+#from models.resnet import resnet101, resnet18, resnet50
+from model.DCNN import DLP_CNN
+from model.DCNN import  DLP_Loss
 from datasets import get_train_loader
 from datasets import get_test_loader
 from log import Logger
 from train import Trainer
-from models.nasnet import nasnetalarge
-from models.senset import se_resnext101_32x4d
+#from models.nasnet import nasnetalarge
+#from models.senset import se_resnext101_32x4d
 import os
 import torch
 
 
 def get_catalogue():
     model_creators = dict()
-    model_creators['resnet101'] = resnet101
-    model_creators['resnet18'] = resnet18
-    model_creators['resnet50'] = resnet50
-    model_creators['se_resnext101_32x4d'] = se_resnext101_32x4d
-    model_creators['nasnet'] = nasnetalarge
+    # model_creators['resnet101'] = resnet101
+    # model_creators['resnet18'] = resnet18
+    # model_creators['resnet50'] = resnet50
+    # model_creators['se_resnext101_32x4d'] = se_resnext101_32x4d
+    # model_creators['nasnet'] = nasnetalarge
+    model_creators['DLP_CNN'] = DLP_CNN
     return model_creators
 
 
@@ -64,7 +67,11 @@ def create_model(args):
         else:
             model = model.cuda()
 
-    criterion = nn.__dict__[args.criterion + 'Loss']()
+    if args.criterion == 'DLP_LOSS':
+        criterion = DLP_Loss
+    else:
+        criterion = nn.__dict__[args.criterion + 'Loss']()
+
     if args.nGPU > 0:
         criterion = criterion.cuda()
 
@@ -77,11 +84,13 @@ def main():
     # Create Model, Criterion and State
     model, criterion, state = create_model(args)
     print("=> Model and criterion are ready")
+
     # Create Dataloader
     if not args.test_only:
         train_loader = get_train_loader(args)
     val_loader = get_test_loader(args)
     print("=> Dataloaders are ready")
+
     # Create Logger
     logger = Logger(args, state)
     print("=> Logger is ready")  # Create Trainer
