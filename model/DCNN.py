@@ -56,8 +56,29 @@ class DLP_Loss(nn.Module):
                 return nums
         return nums
 
-
-
+def DLP_CNN():
+    model = nn.Sequential(
+        nn.Conv2d(3, 64, kernel_size=3, padding=1),  # 64 x 100 x 100
+        nn.ReLU(inplace=True),
+        nn.MaxPool2d(kernel_size=2, stride=2),  # 64 x 50 x 50
+        nn.Conv2d(64, 96, kernel_size=3, padding=1),  # 96 x 50 x 50
+        nn.ReLU(inplace=True),
+        nn.MaxPool2d(kernel_size=2, stride=2),  # 96 x 25 x 25
+        nn.Conv2d(96, 128, kernel_size=3, padding=1),  # 128 x 25 x 25
+        nn.ReLU(inplace=True),
+        nn.Conv2d(128, 128, kernel_size=3, padding=1),  # 128 x 25 x 25
+        nn.ReLU(inplace=True),
+        nn.MaxPool2d(kernel_size=2, stride=2),  # 128 x 12 x 12  ?
+        nn.Conv2d(128, 256, kernel_size=3, padding=1),  # 256 x 12 x 12
+        nn.ReLU(inplace=True),
+        nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 256 x 12 x 12
+        nn.ReLU(inplace=True),
+        Flatten(),
+        nn.Linear(36864, 2000),
+        nn.ReLU(inplace=True),
+        nn.Linear(2000, 7)
+    )
+    return model
 
 
 # the CPU type
@@ -65,31 +86,10 @@ dtype = torch.FloatTensor
 # the GPU type
 #dtype = torch.cuda.FloatTensor
 
-model = nn.Sequential(
-    nn.Conv2d(3,64,kernel_size=3,padding=1), # 64 x 100 x 100
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2,stride=2), # 64 x 50 x 50
-    nn.Conv2d(64,96,kernel_size=3,padding=1), # 96 x 50 x 50
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2,stride=2), #96 x 25 x 25
-    nn.Conv2d(96,128,kernel_size=3,padding=1), # 128 x 25 x 25
-    nn.ReLU(inplace=True),
-    nn.Conv2d(128,128,kernel_size=3,padding=1), # 128 x 25 x 25
-    nn.ReLU(inplace=True),
-    nn.MaxPool2d(kernel_size=2,stride=2), # 128 x 12 x 12  ?
-    nn.Conv2d(128,256,kernel_size=3,padding=1), # 256 x 12 x 12
-    nn.ReLU(inplace=True),
-    nn.Conv2d(256,256,kernel_size=3,padding=1), # 256 x 12 x 12
-    nn.ReLU(inplace=True),
-    Flatten(),
-    nn.Linear(36864,2000),
-    nn.ReLU(inplace=True),
-    nn.Linear(2000,7)
-)
 
 
 if __name__ == '__main__':
-    model = model.type(dtype)
+    model = DLP_CNN().type(dtype)
     loss = DLP_Loss(k=3).type(dtype)
     optimizer = optim.SGD(model.parameters(), lr=1e-3)
     parser = argparse.ArgumentParser(description="mytest")
