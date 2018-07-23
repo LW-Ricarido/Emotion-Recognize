@@ -31,7 +31,7 @@ parser.add_argument('-nGPU', default=1, type=int, help='Number of GPUs for train
 parser.add_argument('-workers', default=2, type=int, help='Number of subprocesses to to load data')
 parser.add_argument('-decay', default=8, type=int, help='LR decay')
 
-parser.add_argument('-size', default=100, type=int)
+parser.add_argument('-size', default=224, type=int)
 
 parser.add_argument('-cutout', action='store_true', default=False, help='apply cutout')
 parser.add_argument('-n_holes', type=int, default=1, help='number of holes to cut out from image')
