@@ -39,4 +39,10 @@ parser.add_argument('-n_holes', type=int, default=1, help='number of holes to cu
 parser.add_argument('-length', type=int, default=8,
                     help='length of the holes')
 
+parser.add_argument('-enable_disturb_label', default=False, help='Whether disturb label')
+parser.add_argument('-noise_rate', default=0.1, type=float, help='noise rate for disturbing labels')
+
+parser.add_argument('-mixup', action='store_true', default=False, help='apply mixup')
+
+parser.add_argument('-save_result', action='store_true', default=False, help='save result when evaluating')
 args = parser.parse_args()

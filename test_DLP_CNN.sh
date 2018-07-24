@@ -12,9 +12,9 @@ python -u main.py \
     -shuffle \
     -train_record \
     -model DLP_CNN \
-    -data_dir DataSet/RAF/basic/Image/aligned/ \
-    -train_list DataSet/RAF/basic/train_set \
-    -test_list DataSet/RAF/basic/validation_set \
+    -data_dir ../DataSet/RAF/basic/Image/aligned/ \
+    -train_list ..DataSet/RAF/basic/train_set \
+    -test_list ../DataSet/RAF/basic/validation_set \
     -save_path checkpoints \
     -output_classes 7 \
     -n_epochs 20 \

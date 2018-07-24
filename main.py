@@ -68,7 +68,7 @@ def create_model(args):
             model = model.cuda()
 
     if args.criterion == 'DLP_LOSS':
-        criterion = DLP_Loss
+        criterion = DLP_Loss(k=args.k)
     else:
         criterion = nn.__dict__[args.criterion + 'Loss']()
 
@@ -98,7 +98,10 @@ def main():
     print("=> Trainer is ready")
 
     if args.test_only:
-        test_summary = trainer.test(0, val_loader)
+        if args.SVM_classifier:
+            test_summary = None
+        else:
+            test_summary = trainer.test(0, val_loader)
         print("- Test:  Acc %6.3f " % (
             test_summary['acc']))
     else:

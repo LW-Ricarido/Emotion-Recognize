@@ -22,30 +22,31 @@ class DLP_Loss(nn.Module):
         self.k = k
         self.lam = lam
 
-    def forward(self,input,scores,target):
+    def forward(self,scores,target):
         '''
 
         :param input: tensor shape(N,C)  FC layer scores
         :param target: tensor N
         :return:
         '''
-        N = input.shape[0]
+
         # softmax loss
         loss = func.cross_entropy(scores,target)
-
+        N = scores.shape[0]
         # locality preserving loss
         for i in range(N):
-            nums = self.kNN(i,input,target)
+            nums = self.kNN(i,scores,target)
             for j in range(len(nums)):
-                loss += 0.5 * 1 / self.k * func.mse_loss(input[i],input[nums[j]],size_average=True)
+                loss += 0.5 * 1 / self.k * func.mse_loss(scores[i],scores[nums[j]],size_average=True)
         return loss
 
     def kNN(self,n,input,target):
         dict = {}
+        n = input.shape[1]
         length = len(target)
         for i in range(length):
             if n != i and target[n] == target[i]:
-                dist = func.pairwise_distance(input[n],input[i]).sum()
+                dist = func.pairwise_distance(input[n].view(n,-1),input[i].view(n,-1)).sum()
                 dict[i] = dist
         dict = sorted(dict.items(),key=lambda item:item[1])
         nums = []
@@ -56,7 +57,7 @@ class DLP_Loss(nn.Module):
                 return nums
         return nums
 
-def DLP_CNN():
+def DLP_CNN(args):
     model = nn.Sequential(
         nn.Conv2d(3, 64, kernel_size=3, padding=1),  # 64 x 100 x 100
         nn.ReLU(inplace=True),
@@ -107,7 +108,7 @@ if __name__ == '__main__':
         targets[i] = target
     for t in range(10):
         scores = model(images)
-        myloss = loss(images,scores,targets)
+        myloss = loss(scores,targets)
         print(myloss.item()) # for pytorch0.5 change myloss.data[0] to myloss.item()
         optimizer.zero_grad()
         myloss.backward()
