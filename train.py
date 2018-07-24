@@ -123,7 +123,6 @@ class Trainer:
 
             total += batch_size
             if i % 1000 == 0:
-                print("pred ",output.topk(1).item())
                 print("| Test[%d] [%d/%d]   Acc %6.3f" % (
                     epoch,
                     i + 1,
