@@ -1,11 +1,4 @@
-#!/bin/sh
-
-#  test_DLP_CNN.sh
-#  
-#
-#  Created by 李威 on 2018/7/23.
-#  
-
+#!/usr/bin/env bash
 mkdir checkpoints
 
 python -u main.py \
@@ -20,12 +13,9 @@ python -u main.py \
     -n_epochs 20 \
     -learn_rate 0.003 \
     -batch_size 64 \
+    -k 3 \
     -workers 0 \
     -nGPU 1 \
     -decay 30 \
     -size 100 \
-    -save_result \
-    -test_only \
-    -ckpt 30 \
-    -resume \
 2>&1 | tee test_DLP_CNN.log

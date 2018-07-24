@@ -72,7 +72,7 @@ class RAFTestSet(data.Dataset):
         #
         #
         #
-        lines = open(args.train_list).readlines()
+        lines = open(args.test_list).readlines()
         for line in lines:
             path, label = line.strip().split(' ')
             self.images.append(os.path.join(args.data_dir, path))

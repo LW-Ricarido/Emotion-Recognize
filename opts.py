@@ -30,6 +30,7 @@ parser.add_argument('-resume', action='store_true', help='Whether continue to tr
 parser.add_argument('-nGPU', default=1, type=int, help='Number of GPUs for training')
 parser.add_argument('-workers', default=2, type=int, help='Number of subprocesses to to load data')
 parser.add_argument('-decay', default=8, type=int, help='LR decay')
+parser.add_argument('-k',default=3,type=int,help='k for kNN in DLP_Loss')
 
 parser.add_argument('-size', default=224, type=int)
 

@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import os
 from torch.autograd import Variable
 from utils.mixup import shuffle_minibatch
 
@@ -15,10 +16,10 @@ class Trainer:
             args.learn_rate,
             momentum=args.momentum,
             weight_decay=args.weight_decay,
-            nesterov=True
+            nesterov=False
         )
         self.nGPU = args.nGPU
-        self.learning_rate = args.learn_rate
+        self.learn_rate = args.learn_rate
 
     def train(self,epoch,train_loader):
         n_batches = len(train_loader)
@@ -54,23 +55,23 @@ class Trainer:
             else:
                 loss = self.criterion(output,target_var)
 
-            acc = self.accuary(output.item(),target)
+            acc ,_= self.accuracy(output.data,target,(1,3))
             acc_avg += acc * batch_size
 
             loss_avg += loss.item() * batch_size
             total += batch_size
-
-            print("| Epoch[%d] [%d/%d]  Loss %1.4f  Acc %6.3f   LR %1.8f" % (
-                epoch,
-                i + 1,
-                n_batches,
-                loss.item(),
-                acc,
-                self.decay * self.learn_rate))
+            if i % 1000 == 0:
+                print("| Epoch[%d] [%d/%d]  Loss %1.4f  Acc %6.3f   LR %1.8f" % (
+                    epoch,
+                    i + 1,
+                    n_batches,
+                    loss_avg / total,
+                    acc_avg / total,
+                    self.decay * self.learn_rate))
 
             self.optimizer.zero_grad()
             loss.backward()
-            self.optimizer().step()
+            self.optimizer.step()
 
         loss_avg /= total
         acc_avg /= total
@@ -87,7 +88,63 @@ class Trainer:
         return summary
 
 
-    def accuary(self,output,target,topk=(1,)):
+    def test(self, epoch, test_loader):
+
+        n_batches = len(test_loader)
+
+        acc_avg = 0
+
+        total = 0
+
+        model = self.model
+        model.eval()
+        out_f = open('results.txt', 'w')
+        for i, (input_tensor, target, filenames) in enumerate(test_loader):
+
+            if self.nGPU > 0:
+                input_tensor = input_tensor.cuda()
+                target = target.cuda(async=True)
+
+            batch_size = target.size(0)
+            input_var = Variable(input_tensor)
+            # target_var = Variable(target)
+
+            output = model(input_var)
+
+            if self.args.save_result:
+                _, predictions = output.topk(3, dim=1, )
+                for filename, prediction in zip(filenames, predictions):
+                    out_f.write(str(os.path.basename(filename)).split('.')[0] + ',' + ','.join(
+                        [str(int(x)) for x in prediction]) + '\n')
+
+            acc = self.accuracy(output.item(), target)
+
+            acc_avg += acc * batch_size
+
+            total += batch_size
+            if i % 1000 == 0:
+                print("pred ",output.topk(1).item())
+                print("| Test[%d] [%d/%d]   Acc %6.3f" % (
+                    epoch,
+                    i + 1,
+                    n_batches,
+                    acc_avg / total))
+
+        acc_avg /= total
+
+        print("\n=> Test[%d]  Acc %6.3f\n" % (
+            epoch,
+            acc_avg))
+
+        torch.cuda.empty_cache()
+
+        summary = dict()
+
+        summary['acc'] = acc_avg
+        return summary
+
+
+    def accuracy(self,output,target,topk=(1,)):
         maxk = max(topk)
         batch_size = target.size(0)
 
@@ -103,9 +160,9 @@ class Trainer:
             res.append(correcct_k.mul_(100.0 / batch_size)[0])
         return res
 
-    def learing_rate(self,epoch):
+    def learning_rate(self,epoch):
         self.decay = 0.1 **((epoch - 1) // self.args.decay)
-        learn_rate = self.learning_rate * self.decay
+        learn_rate = self.learn_rate * self.decay
         if learn_rate < 1e-7:
             learn_rate = 1e-7
         for param_group in self.optimizer.param_groups:
