@@ -10,7 +10,7 @@ python3 -u main.py \
     -test_list ../DataSet/RAF/basic/validation_set \
     -save_path checkpoints \
     -output_classes 7 \
-    -n_epochs 20 \
+    -n_epochs 40 \
     -learn_rate 0.003 \
     -batch_size 64 \
     -k 3 \

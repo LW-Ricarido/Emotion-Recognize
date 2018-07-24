@@ -60,7 +60,7 @@ class Trainer:
 
             loss_avg += loss.item() * batch_size
             total += batch_size
-            if i % 1000 == 0:
+            if i % 10 == 0:
                 print("| Epoch[%d] [%d/%d]  Loss %1.4f  Acc %6.3f   LR %1.8f" % (
                     epoch,
                     i + 1,
@@ -117,7 +117,7 @@ class Trainer:
                     out_f.write(str(os.path.basename(filename)).split('.')[0] + ',' + ','.join(
                         [str(int(x)) for x in prediction]) + '\n')
 
-            acc = self.accuracy(output.item(), target)
+            acc,_ = self.accuracy(output.item(), target,(1,3))
 
             acc_avg += acc * batch_size
 
