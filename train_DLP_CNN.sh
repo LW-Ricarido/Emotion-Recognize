@@ -5,9 +5,9 @@ python3 -u main.py \
     -shuffle \
     -train_record \
     -model DLP_CNN \
-    -data_dir ../DataSet/RAF/basic/Image/aligned/ \
-    -train_list ../DataSet/RAF/basic/train_set \
-    -test_list ../DataSet/RAF/basic/validation_set \
+    -data_dir DataSet/RAF/basic/Image/aligned/ \
+    -train_list DataSet/RAF/basic/train_set \
+    -test_list DataSet/RAF/basic/validation_set \
     -save_path checkpoints \
     -output_classes 7 \
     -n_epochs 40 \
@@ -16,7 +16,7 @@ python3 -u main.py \
     -k 3 \
     -criterion DLP_LOSS \
     -workers 0 \
-    -nGPU 1 \
+    -nGPU 0 \
     -decay 30 \
     -size 100 \
 2>&1 | tee train_DLP_CNN.log

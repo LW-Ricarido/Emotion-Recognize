@@ -17,7 +17,7 @@ class Flatten(nn.Module):
         return input.view(N,-1)
 
 class DLP_Loss(nn.Module):
-    def __init__(self,k=1,lam=0.5):
+    def __init__(self,k=3,lam=50):
         super(DLP_Loss, self).__init__()
         self.k = k
         self.lam = lam
@@ -32,12 +32,14 @@ class DLP_Loss(nn.Module):
 
         # softmax loss
         loss = func.cross_entropy(scores,target)
+        #print(loss.item())
         N = scores.shape[0]
         # locality preserving loss
         for i in range(N):
             nums = self.kNN(i,scores,target)
             for j in range(len(nums)):
-                loss += 0.5 * 1 / self.k * func.mse_loss(scores[i],scores[nums[j]],size_average=True)
+                loss += self.lam * 0.5 * func.mse_loss(scores[i],1 / self.k * scores[nums[j]],size_average=True)
+        #print(loss.item())
         return loss
 
     def kNN(self,n,input,target):
@@ -90,7 +92,8 @@ dtype = torch.FloatTensor
 
 
 if __name__ == '__main__':
-    model = DLP_CNN().type(dtype)
+    args = []
+    model = DLP_CNN(args).type(dtype)
     loss = DLP_Loss(k=3).type(dtype)
     optimizer = optim.SGD(model.parameters(), lr=1e-3)
     parser = argparse.ArgumentParser(description="mytest")

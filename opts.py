@@ -31,6 +31,7 @@ parser.add_argument('-nGPU', default=1, type=int, help='Number of GPUs for train
 parser.add_argument('-workers', default=2, type=int, help='Number of subprocesses to to load data')
 parser.add_argument('-decay', default=8, type=int, help='LR decay')
 parser.add_argument('-k',default=3,type=int,help='k for kNN in DLP_Loss')
+parser.add_argument('-lam',default=0.5,type=float,help='lam for DLP_Loss')
 
 parser.add_argument('-size', default=224, type=int)
 

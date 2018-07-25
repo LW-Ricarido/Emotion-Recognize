@@ -68,7 +68,7 @@ def create_model(args):
             model = model.cuda()
 
     if args.criterion == 'DLP_LOSS':
-        criterion = DLP_Loss(k=args.k)
+        criterion = DLP_Loss(k=args.k,lam=args.lam)
     else:
         criterion = nn.__dict__[args.criterion + 'Loss']()
 
