@@ -32,14 +32,14 @@ class DLP_Loss(nn.Module):
 
         # softmax loss
         loss = func.cross_entropy(scores,target)
-        #print(loss.item())
+        print(loss.item())
         N = feture.shape[0]
         # locality preserving loss
         for i in range(N):
             nums = self.kNN(i,feture,target)
             for j in range(len(nums)):
-                loss += self.lam * 0.5 * func.mse_loss(feture[i],1 / self.k * feture[nums[j]],size_average=False)
-        #print(loss.item())
+                loss += self.lam * 0.5 * func.mse_loss(feture[i],1 / len(nums) * feture[nums[j]],size_average=False)
+        print(loss.item())
         return loss
 
     def kNN(self,n,input,target):

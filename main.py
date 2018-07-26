@@ -98,8 +98,9 @@ def main():
     print("=> Trainer is ready")
 
     if args.test_only:
-        if args.SVM_classifier:
-            test_summary = None
+        if args.model == 'DLP_CNN':
+            train_loader = get_train_loader(args)
+            test_summary = trainer.svm_classifier(0,train_loader,val_loader)
         else:
             test_summary = trainer.test(0, val_loader)
         print("- Test:  Acc %6.3f " % (
