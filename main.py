@@ -3,7 +3,7 @@ import torch.backends.cudnn as cudnn
 
 from opts import args
 #from models.resnet import resnet101, resnet18, resnet50
-from model.DCNN import DLP_CNN
+from model.DCNN import get_DLP_CNN
 from model.DCNN import  DLP_Loss
 from datasets import get_train_loader
 from datasets import get_test_loader
@@ -22,7 +22,7 @@ def get_catalogue():
     # model_creators['resnet50'] = resnet50
     # model_creators['se_resnext101_32x4d'] = se_resnext101_32x4d
     # model_creators['nasnet'] = nasnetalarge
-    model_creators['DLP_CNN'] = DLP_CNN
+    model_creators['DLP_CNN'] = get_DLP_CNN
     return model_creators
 
 

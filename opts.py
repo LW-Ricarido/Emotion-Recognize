@@ -18,8 +18,8 @@ parser.add_argument('-output_classes', required=True, type=int, help='Num of col
 
 # Training options
 parser.add_argument('-learn_rate', default=1e-2, type=float, help='Base learning rate of training')
-parser.add_argument('-momentum', default=0, type=float, help='Momentum for training')
-parser.add_argument('-weight_decay', default=0, type=float, help='Weight decay for training')
+parser.add_argument('-momentum', default=0.9, type=float, help='Momentum for training')
+parser.add_argument('-weight_decay', default=0.0005, type=float, help='Weight decay for training')
 parser.add_argument('-n_epochs', default=20, type=int, help='Training epochs')
 parser.add_argument('-batch_size', default=64, type=int, help='Size of mini-batches for each iteration')
 parser.add_argument('-criterion', default='CrossEntropy', help='Type of objective function')

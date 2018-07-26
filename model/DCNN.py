@@ -22,7 +22,7 @@ class DLP_Loss(nn.Module):
         self.k = k
         self.lam = lam
 
-    def forward(self,scores,target):
+    def forward(self,feture,scores,target):
         '''
 
         :param input: tensor shape(N,C)  FC layer scores
@@ -33,22 +33,22 @@ class DLP_Loss(nn.Module):
         # softmax loss
         loss = func.cross_entropy(scores,target)
         #print(loss.item())
-        N = scores.shape[0]
+        N = feture.shape[0]
         # locality preserving loss
         for i in range(N):
-            nums = self.kNN(i,scores,target)
+            nums = self.kNN(i,feture,target)
             for j in range(len(nums)):
-                loss += self.lam * 0.5 * func.mse_loss(scores[i],1 / self.k * scores[nums[j]],size_average=True)
+                loss += self.lam * 0.5 * func.mse_loss(feture[i],1 / self.k * feture[nums[j]],size_average=False)
         #print(loss.item())
         return loss
 
     def kNN(self,n,input,target):
         dict = {}
-        n = input.shape[1]
+        tmp = input.shape[1]
         length = len(target)
         for i in range(length):
             if n != i and target[n] == target[i]:
-                dist = func.pairwise_distance(input[n].view(n,-1),input[i].view(n,-1)).sum()
+                dist = func.pairwise_distance(input[n].view(tmp,-1),input[i].view(tmp,-1)).sum()
                 dict[i] = dist
         dict = sorted(dict.items(),key=lambda item:item[1])
         nums = []
@@ -59,28 +59,49 @@ class DLP_Loss(nn.Module):
                 return nums
         return nums
 
-def DLP_CNN(args):
-    model = nn.Sequential(
-        nn.Conv2d(3, 64, kernel_size=3, padding=1),  # 64 x 100 x 100
-        nn.ReLU(inplace=True),
-        nn.MaxPool2d(kernel_size=2, stride=2),  # 64 x 50 x 50
-        nn.Conv2d(64, 96, kernel_size=3, padding=1),  # 96 x 50 x 50
-        nn.ReLU(inplace=True),
-        nn.MaxPool2d(kernel_size=2, stride=2),  # 96 x 25 x 25
-        nn.Conv2d(96, 128, kernel_size=3, padding=1),  # 128 x 25 x 25
-        nn.ReLU(inplace=True),
-        nn.Conv2d(128, 128, kernel_size=3, padding=1),  # 128 x 25 x 25
-        nn.ReLU(inplace=True),
-        nn.MaxPool2d(kernel_size=2, stride=2),  # 128 x 12 x 12  ?
-        nn.Conv2d(128, 256, kernel_size=3, padding=1),  # 256 x 12 x 12
-        nn.ReLU(inplace=True),
-        nn.Conv2d(256, 256, kernel_size=3, padding=1),  # 256 x 12 x 12
-        nn.ReLU(inplace=True),
-        Flatten(),
-        nn.Linear(36864, 2000),
-        nn.ReLU(inplace=True),
-        nn.Linear(2000, 7)
-    )
+class DLP_CNN(nn.Module):
+    def __init__(self,args):
+        self.args = args
+        super(DLP_CNN,self).__init__()
+        self.conv1 =  nn.Conv2d(3, 64, kernel_size=3, padding=1)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=2,stride=2)
+        self.conv2 = nn.Conv2d(64,96,kernel_size=3,padding=1)
+        self.conv3 = nn.Conv2d(96, 128, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.conv6 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
+        self.flatten = Flatten()
+        self.fc1 = nn.Linear(36864,2000)
+        self.fc2 = nn.Linear(2000,args.output_classes)
+
+    def forward(self, input):
+        input = self.conv1(input)
+        input = self.relu(input)
+        input = self.maxpool(input)
+        input = self.conv2(input)
+        input = self.relu(input)
+        input = self.maxpool(input)
+        input = self.conv3(input)
+        input = self.relu(input)
+        input = self.conv4(input)
+        input = self.relu(input)
+        input = self.maxpool(input)
+        input = self.conv5(input)
+        input = self.relu(input)
+        input = self.conv6(input)
+        input = self.relu(input)
+        input = self.flatten(input)
+        input = self.fc1(input)
+        input = self.relu(input)
+        feature = input
+        input = self.fc2(input)
+        return input,feature
+
+
+
+def get_DLP_CNN(args):
+    model = DLP_CNN(args)
     return model
 
 
@@ -109,7 +130,7 @@ if __name__ == '__main__':
         image,target = mytest.__getitem__(int(index[i]))
         images[i] = image
         targets[i] = target
-    for t in range(10):
+    for t in range(100):
         scores = model(images)
         myloss = loss(scores,targets)
         print(myloss.item()) # for pytorch0.5 change myloss.data[0] to myloss.item()

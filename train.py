@@ -16,7 +16,7 @@ class Trainer:
             args.learn_rate,
             momentum=args.momentum,
             weight_decay=args.weight_decay,
-            nesterov=False
+            nesterov=True
         )
         self.nGPU = args.nGPU
         self.learn_rate = args.learn_rate
@@ -44,14 +44,18 @@ class Trainer:
             batch_size = target.size(0)
             input_var = Variable(input_tensor)
             target_var = Variable(target)
-
-            output = model(input_var)
+            if self.args.model == 'DLP_CNN':
+                output,feature = model(input_var)
+            else:
+                output = model(input_var)
 
             if self.args.mixup:
                 m = nn.LogSoftmax(dim=1)
                 loss = -m(output) * target
                 loss = torch.sum(loss) / 128
                 _, target = torch.max(target.item(),1)
+            if self.args.model == 'DLP_CNN':
+                loss = self.criterion(feature,output,target_var)
             else:
                 loss = self.criterion(output,target_var)
 
@@ -117,7 +121,7 @@ class Trainer:
                     out_f.write(str(os.path.basename(filename)).split('.')[0] + ',' + ','.join(
                         [str(int(x)) for x in prediction]) + '\n')
 
-            acc,_ = self.accuracy(output.item(), target,(1,3))
+            acc,_ = self.accuracy(output.data, target,(1,3))
 
             acc_avg += acc * batch_size
 
