@@ -1,21 +1,18 @@
 #!/bin/sh
 
-#  test_DLP_CNN.sh
+#  test_resnet50.sh
 #  
 #
-#  Created by 李威 on 2018/7/23.
+#  Created by 李威 on 2018/7/29.
 #  
-
-mkdir checkpoints
-
 python -u main.py \
     -shuffle \
     -train_record \
-    -model DLP_CNN \
+    -model resnet50 \
     -data_dir ../DataSet/RAF/basic/Image/aligned/ \
     -train_list ../DataSet/RAF/basic/train_set \
-    -test_list ../DataSet/RAF/basic/validation_set \
-    -save_path checkpoints \
+    -test_list ../DataSet/RAF/basic/test_set \
+    -save_path checkpoints/pure \
     -output_classes 7 \
     -n_epochs 20 \
     -learn_rate 0.003 \
@@ -26,6 +23,6 @@ python -u main.py \
     -size 100 \
     -save_result \
     -test_only \
-    -ckpt 30 \
+    -ckpt 36 \
     -resume \
-2>&1 | tee test_DLP_CNN.log
+2>&1 | tee test_resnet50.log
