@@ -12,4 +12,8 @@ This project tries to find a way to recognize emotion through picture.
 
 2. Resnet50
 
-   74.055 at RAF_DB(basic)
+   74.055 at RAF_DB(basic) without pretrained
+
+   84.192 at RAF_DB(basic) ImageNet pretained
+
+   
