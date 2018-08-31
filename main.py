@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 
 from opts import args
-from models.resnet import resnet101, resnet18, resnet50
+from model.resnet import resnet101, resnet18, resnet50
 from model.DCNN import get_DLP_CNN
 from model.DCNN import  DLP_Loss
 from datasets import get_train_loader

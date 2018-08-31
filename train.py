@@ -46,8 +46,9 @@ class Trainer:
             batch_size = target.size(0)
             input_var = Variable(input_tensor)
             target_var = Variable(target)
-            if self.args.model == 'DLP_CNN':
+            if self.args.criterion == 'DLP_LOSS':
                 output,feature = model(input_var)
+                print("shape",feature.shape)
             else:
                 output = model(input_var)
 
@@ -56,7 +57,7 @@ class Trainer:
                 loss = -m(output) * target
                 loss = torch.sum(loss) / 128
                 _, target = torch.max(target.item(),1)
-            if self.args.model == 'DLP_CNN':
+            if self.args.criterion == 'DLP_LOSS':
                 loss = self.criterion(feature,output,target_var)
             else:
                 loss = self.criterion(output,target_var)
@@ -115,7 +116,7 @@ class Trainer:
             input_var = Variable(input_tensor)
             # target_var = Variable(target)
 
-            if self.args.model == 'DLP_CNN':
+            if self.args.criterion == 'DLP_LOSS':
                 output,feature = model(input_var)
             else:
                 output = model(input_var)

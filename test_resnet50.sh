@@ -13,6 +13,7 @@ python -u main.py \
     -train_list ../DataSet/RAF/basic/train_set \
     -test_list ../DataSet/RAF/basic/test_set \
     -save_path checkpoints/pure \
+    -criterion DLP_LOSS \
     -output_classes 7 \
     -n_epochs 20 \
     -learn_rate 0.003 \
