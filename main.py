@@ -98,7 +98,7 @@ def main():
     print("=> Trainer is ready")
 
     if args.test_only:
-        if args.model == 'DLP_CNN':
+        if args.criterion == 'DLP_LOSS':
             train_loader = get_train_loader(args)
             test_summary = trainer.svm_classifier(0,train_loader,val_loader)
         else:

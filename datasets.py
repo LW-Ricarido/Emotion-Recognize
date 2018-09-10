@@ -25,7 +25,7 @@ def get_test_loader(args):
 
     return DataLoader(
         dataset,
-        batch_size=1,
+        batch_size=args.batch_size,
         shuffle=args.shuffle,
         num_workers=args.workers,
         pin_memory=True

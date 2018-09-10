@@ -168,14 +168,16 @@ class Trainer:
                 target = target.cuda(async=True)
 
             input_var = Variable(input_tensor)
-            if self.args.model == 'DLP_CNN':
+            if self.args.criterion == 'DLP_LOSS':
                 output,feature = model(input_var)
-                self.svm.fit(feature,target)
+                feature = feature.cpu()
+                target = target.cpu()
+                self.svm.fit(feature.detach().numpy(),target.detach().numpy())
             else:
                 output = model(input_var)
                 self.svm.fit(output,target)
 
-
+        print("SV")
         for i, (input_tensor, target, filenames) in enumerate(test_loader):
 
             if self.nGPU > 0:
@@ -186,9 +188,10 @@ class Trainer:
             input_var = Variable(input_tensor)
             # target_var = Variable(target)
 
-            if self.args.model == 'DLP_CNN':
+            if self.args.criterion == 'DLP_LOSS':
                 output, feature = model(input_var)
-                output = self.svm.predict(feature)
+                feature = feature.cpu()
+                output = self.svm.predict(feature.detach().numpy())
             else:
                 output = model(input_var)
 
@@ -199,11 +202,14 @@ class Trainer:
             #             [str(int(x)) for x in prediction]) + '\n')
             #
             # acc, _ = self.accuracy(output.data, target, (1, 3))
-            if int(output[0]) == int(target[0]):
-                acc = 100
-            else:
-                acc = 0
-            acc_avg += acc * batch_size
+            target = target.cpu()
+            target = target.detach().numpy()
+            for i in range(batch_size):
+                if int(output[i]) == int(target[i]):
+                    acc = 100
+                else:
+                    acc = 0
+                acc_avg += acc
 
             total += batch_size
             if i % 1000 == 0:
