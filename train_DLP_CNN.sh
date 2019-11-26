@@ -14,7 +14,7 @@ python3 -u main.py \
     -learn_rate 0.01 \
     -batch_size 64 \
     -k 20 \
-    -lam 0.05 \
+    -lam 0.0003 \
     -criterion DLP_LOSS \
     -workers 0 \
     -nGPU 0 \
